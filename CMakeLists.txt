@@ -16,9 +16,6 @@ set(PROFILING_WITH_LIKWID OFF CACHE BOOL "LIKWID is needed")
 project(project C CXX)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# set the c++ standard to c++11
-set( CMAKE_CXX_STANDARD 11 )
-
 ## Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,15 +29,31 @@ if(OPENMP)
     find_package(OpenMP REQUIRED)
 endif()
 
-# Find Intel MKL
+# Intel MKL provides the vendor-library baseline the custom kernels are measured
+# against. It is optional: without it the project still builds and runs, minus
+# the MKL comparison benchmarks.
 option(USE_MKL "Use Intel MKL for reference implementations" ON)
 if(USE_MKL)
-    find_package(MKL CONFIG REQUIRED)
-    message(STATUS "MKL found: ${MKL_ROOT}")
+    find_package(MKL CONFIG)
+    if(MKL_FOUND)
+        message(STATUS "MKL found: ${MKL_ROOT}")
+    else()
+        message(WARNING "MKL not found - building without MKL reference kernels. "
+                        "Set USE_MKL=OFF to silence this warning.")
+        set(USE_MKL OFF)
+    endif()
 endif()
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mavx")
+# Vectorization flags are x86-only. Gating them keeps the CPU path buildable on
+# Arm hosts (Apple Silicon, Graviton), where the same OpenMP SIMD pragmas are
+# vectorized by the compiler's own target flags.
+include(CheckCXXCompilerFlag)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|i686")
+    set(HPP_ARCH_FLAGS -mavx2 -mfma -march=native)
+else()
+    set(HPP_ARCH_FLAGS "")
+endif()
+
 include(FetchContent)
 
 
@@ -76,7 +89,7 @@ add_executable(project
         src/spmv.cpp
         main_bench.cpp
 )
-target_compile_options(project PRIVATE -mavx2 -mfma -march=native)
+target_compile_options(project PRIVATE ${HPP_ARCH_FLAGS})
 
 target_link_libraries(project
         benchmark::benchmark
@@ -92,7 +105,7 @@ add_executable(nn_cpu
         src/spmv.cpp
         nn_cpu_bench.cpp
 )
-target_compile_options(nn_cpu PRIVATE -mavx2 -mfma -march=native)
+target_compile_options(nn_cpu PRIVATE ${HPP_ARCH_FLAGS})
 target_link_libraries(nn_cpu
         benchmark::benchmark)
 

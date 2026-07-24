@@ -6,8 +6,9 @@
 // without express written permission from SwiftWare Lab.
 
 #include "spmm.h"
-#include "immintrin.h"
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 namespace swiftware::hpp {
 

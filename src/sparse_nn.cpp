@@ -9,7 +9,9 @@
 #include "sparse_nn.h"
 #include <cmath>
 #include <algorithm>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 namespace swiftware::hpp {
 

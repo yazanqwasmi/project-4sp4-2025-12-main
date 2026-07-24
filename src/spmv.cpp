@@ -6,7 +6,9 @@
 // without express written permission from SwiftWare Lab.
 
 #include "spmv.h"
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 namespace swiftware::hpp {
   void spmvCSR(int m, int n, const int *Ap, const int *Ai, const float *Ax, const float *b, float *c, ScheduleParams Sp){

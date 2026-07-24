@@ -6,9 +6,10 @@
 // without express written permission from SwiftWare Lab.
 
 #include "gemm.h"
-#include <immintrin.h>
 #include <iostream>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #ifdef USE_MKL
 #include <mkl.h>
