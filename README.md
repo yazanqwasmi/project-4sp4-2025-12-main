@@ -8,19 +8,19 @@ Nothing is delegated to a math library: GEMM, GEMV, SpMM, and SpMV are all
 implemented from scratch for both CPU and GPU, then measured against the
 vendor implementations of the same operations.
 
-The interesting result is where the custom kernels win and where they lose.
-A tuned register-tiled GEMM still reaches only 29–62% of cuBLAS throughput,
-because cuBLAS is very hard to beat at dense work. The custom CSR SpMM beats
-cuSPARSE by 1.23–1.46× across every batch size tested, because a kernel
-specialized to one sparsity pattern can skip the generality cuSPARSE must pay
-for.
+A tuned register-tiled GEMM still only reaches 29–62% of cuBLAS throughput.
+cuBLAS is hard to beat at dense work, full stop. The custom CSR SpMM tells a
+different story: it beats cuSPARSE by 1.23–1.46× across every batch size
+tested, because a kernel built for one specific sparsity pattern can skip the
+generality cuSPARSE has to pay for.
 
 **Access note:** this was built for COMPENG 4SP4 (High-Performance
-Programming) at McMaster University. The full pipeline — MKL, CUDA, and the
-benchmarks below — only builds and runs on the McMaster ECE cluster (Intel
-CPU nodes + NVIDIA Ada 2000 GPUs, SLURM-scheduled), and needs a McMaster ECE
-account and the course dataset to execute. It is not runnable standalone;
-this README documents the implementation and the results measured there.
+Programming) at McMaster University. The full pipeline (MKL, CUDA, and the
+benchmarks below) only builds and runs on the McMaster ECE cluster: Intel CPU
+nodes plus NVIDIA Ada 2000 GPUs, scheduled through SLURM. You need a McMaster
+ECE account and the course dataset to actually execute it, so it isn't
+runnable standalone. This README documents the implementation and the
+results measured there.
 
 ---
 
@@ -72,8 +72,8 @@ sbatch build_run.sh
 building, pulling the MNIST dataset and model weights, running the Python
 pruning script, executing the CPU and GPU benchmarks, running the test suite,
 and generating plots from the resulting logs. Output lands in `*.out`, logs
-in `logs/`, and figures in `plots/` (both gitignored per the course's
-submission rules — they're generated, not committed).
+in `logs/`, and figures in `plots/`. Both directories are gitignored per the
+course's submission rules since they're generated, not committed.
 
 Build options, set via `-D` flags to `cmake` inside `build_run.sh`:
 
@@ -116,9 +116,9 @@ Vectorization is driven by `#pragma omp simd` against `-mavx2 -mfma
 - 128×128×8 block tiling with an 8×8 register tile per thread, so each
   thread computes 64 outputs and arithmetic intensity stays high enough to
   hide global memory latency
-- Shared-memory staging declared as `As[BM][BK + 1]` / `Bs[BK][BN + 1]` — the
-  `+1` pad breaks the power-of-two stride that would otherwise serialize a
-  warp on shared-memory bank conflicts
+- Shared-memory staging declared as `As[BM][BK + 1]` / `Bs[BK][BN + 1]`. The
+  `+1` pad breaks the power-of-two stride that would otherwise cause bank
+  conflicts and serialize a warp's accesses
 - Fully unrolled accumulation over register fragments
 - `__restrict__` throughout to let the compiler assume no aliasing
 - Coalesced global loads, with load indices computed so consecutive threads
