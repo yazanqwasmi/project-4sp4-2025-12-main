@@ -1,0 +1,102 @@
+# ==============================================================================
+# IGNORE EVERYTHING BY DEFAULT
+# ==============================================================================
+*
+
+# ==============================================================================
+# ONLY ALLOW ESSENTIAL SUBMISSION FILES
+# ==============================================================================
+
+# Project configuration
+!CMakeLists.txt
+!build_run.sh
+!README.md
+!.gitignore
+
+# Source files (C++)
+!src/
+!src/*.cpp
+!src/*.cu
+
+# Header files
+!include/
+!include/*.h
+!include/*.cuh
+
+# Main benchmark files
+!main_bench.cpp
+!main_bench.cu
+!nn_cpu_bench.cpp
+!nn_gpu_bench.cu
+
+# Test files
+!test/
+!test/CMakeLists.txt
+!test/*.cpp
+
+# Python scripts (required for generating plots and weights)
+!script/
+!script/*.py
+!script/requirements.txt
+
+# CMake modules
+!cmake/
+!cmake/*.cmake
+!cmake/*.in
+
+# Data directory structure (but not the data itself)
+!data/
+!data/model/
+!data/model/.gitkeep
+
+# ==============================================================================
+# EXPLICITLY IGNORE (even if whitelisted above)
+# ==============================================================================
+
+# Build outputs
+build/
+_deps/
+
+# Executables and binaries
+*.exe
+*.out
+*.app
+*.o
+*.so
+*.a
+*.lib
+*.dll
+
+# SLURM outputs
+project.*.out
+slurm-*.out
+
+# Logs (not tracked per requirements)
+logs/
+
+# Plots (not tracked per requirements)  
+plots/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+*.egg-info/
+
+# Data files (large, downloaded from server)
+data/mnist_train.csv
+data/mnist_test.csv
+
+# Generated model files (created by sparsify script)
+data/model/*_W1.csv
+data/model/*_W2.csv
+
+# Benchmark outputs
+*.json
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
